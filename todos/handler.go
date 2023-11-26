@@ -10,14 +10,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// TodoHandler handles HTTP requests for Todo
 type TodoHandler struct {
 	todoRepo TodoRepository
 }
 
-// UserHandler handles HTTP requests for User
-
-// NewTodoHandler creates a new instance of TodoHandler
 func NewTodoHandler(todoRepo TodoRepository) *TodoHandler {
 	return &TodoHandler{
 		todoRepo: todoRepo,
@@ -132,12 +128,12 @@ func (h *TodoHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	new_todo := updateTodoData(&existing_todo, update_data)
 
-	err = h.todoRepo.Update(uuid.MustParse(id), new_todo)
+	new_todo, err = h.todoRepo.Update(uuid.MustParse(id), new_todo)
 	if err != nil {
 		api.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
-	api.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Todo updated successfully"})
+	api.RespondWithJSON(w, http.StatusOK, new_todo)
 }
 
 func (h *TodoHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -155,5 +151,5 @@ func (h *TodoHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		api.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
-	api.RespondWithJSON(w, http.StatusNoContent, map[string]string{"message": "Todo deleted successfully"})
+	api.RespondWithJSON(w, http.StatusNoContent, nil)
 }

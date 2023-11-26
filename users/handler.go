@@ -70,7 +70,7 @@ func (h *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	user.ID = uuid.New()
 	user.Password, _ = HashPassword(user.Password)
 
-	err = h.userRepo.Create(user)
+	_, err = h.userRepo.Create(user)
 	if err != nil {
 		api.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return

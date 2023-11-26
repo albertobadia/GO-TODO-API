@@ -6,12 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
-// MemoryTodoRepository is an in-memory repository for Todo
 type MemoryTodoRepository struct {
 	todos map[uuid.UUID]Todo
 }
 
-// NewMemoryTodoRepository creates a new instance of MemoryTodoRepository
 func NewMemoryTodoRepository() *MemoryTodoRepository {
 	return &MemoryTodoRepository{
 		todos: make(map[uuid.UUID]Todo),
@@ -58,13 +56,13 @@ func (m *MemoryTodoRepository) Create(todo Todo) (Todo, error) {
 	return todo, nil
 }
 
-func (m *MemoryTodoRepository) Update(id uuid.UUID, todo Todo) error {
+func (m *MemoryTodoRepository) Update(id uuid.UUID, todo Todo) (Todo, error) {
 	_, err := m.GetByID(id)
 	if err != nil {
-		return err
+		return Todo{}, err
 	}
 	m.todos[id] = todo
-	return nil
+	return todo, nil
 }
 
 func (m *MemoryTodoRepository) Delete(id uuid.UUID) error {
