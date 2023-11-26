@@ -115,10 +115,9 @@ func (h *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (h *UsersHandler) GetUserFromToken(token string) (User, error) {
 	claims := jwt.StandardClaims{}
-	claim_result, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte("secret"), nil
 	})
-	println(claim_result)
 	if err != nil {
 		return User{}, err
 	}

@@ -51,9 +51,7 @@ func (m *MemoryTodoRepository) GetByID(id uuid.UUID) (Todo, error) {
 }
 
 func (m *MemoryTodoRepository) Create(todo Todo) (Todo, error) {
-	id := uuid.New()
-	todo.ID = id
-	m.todos[id] = todo
+	m.todos[todo.ID] = todo
 	return todo, nil
 }
 

@@ -28,7 +28,7 @@ func TestRegister(t *testing.T) {
 func TestLogin(t *testing.T) {
 	repo := users.NewMemoryUserRepository()
 	usersHandler := users.NewUsersHandler(repo)
-	user := users.User{Username: "testuser", Password: "testpassword"}
+	user, _ := users.NewUser("testuser", "testpassword")
 	user.Password, _ = users.HashPassword(user.Password)
 	repo.Create(user)
 	jsonData := `{"username":"testuser","password":"testpassword"}`

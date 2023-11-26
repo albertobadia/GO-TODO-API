@@ -86,13 +86,14 @@ func (h *TodoHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if todo.Title == "" {
-		http.Error(w, "Title is required", http.StatusBadRequest)
+	todo, err = NewTodo(
+		todo.Title,
+		user.ID,
+	)
+	if err != nil {
+		api.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	todo.ID = uuid.New()
-	todo.IsDone = false
-	todo.UserID = user.ID
 
 	new_todo, err := h.todoRepo.Create(todo)
 	if err != nil {

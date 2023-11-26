@@ -18,9 +18,7 @@ func TestHandleGetAllNoResult(t *testing.T) {
 	usersRepo := users.NewMemoryUserRepository()
 	usersHandler := users.NewUsersHandler(usersRepo)
 
-	user := users.User{ID: uuid.New(), Username: "test", Password: "test"}
-	usersRepo.Create(user)
-	token, _ := users.GenerateToken(user.Username)
+	_, token := GetUserAndToken(usersRepo)
 
 	req, _ := http.NewRequest("GET", "/todos", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -39,14 +37,9 @@ func TestHandleGetAllWithResult(t *testing.T) {
 	usersRepo := users.NewMemoryUserRepository()
 	usersHandler := users.NewUsersHandler(usersRepo)
 
-	user := users.User{ID: uuid.New(), Username: "test", Password: "test"}
-	usersRepo.Create(user)
-	token, _ := users.GenerateToken(user.Username)
-
-	todo, _ := repo.Create(todos.Todo{
-		Title:  "Test",
-		UserID: user.ID,
-	})
+	user, token := GetUserAndToken(usersRepo)
+	todo, _ := todos.NewTodo("Test", user.ID)
+	repo.Create(todo)
 
 	req, _ := http.NewRequest("GET", "/todos", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -75,9 +68,7 @@ func TestHandleGetItemNotFound(t *testing.T) {
 	r.HandleFunc("/todos/{id}", usersHandler.AuthMiddleware(todoHandler.HandleItem)).Methods("GET")
 
 	id := uuid.New().String()
-	user := users.User{ID: uuid.New(), Username: "test", Password: "test"}
-	usersRepo.Create(user)
-	token, _ := users.GenerateToken(user.Username)
+	_, token := GetUserAndToken(usersRepo)
 
 	req, _ := http.NewRequest("GET", "/todos/"+id, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -98,14 +89,8 @@ func TestHandleGetItemFound(t *testing.T) {
 
 	r.HandleFunc("/todos/{id}", usersHandler.AuthMiddleware(todoHandler.HandleItem)).Methods("GET")
 
-	user := users.User{ID: uuid.New(), Username: "test", Password: "test"}
-	usersRepo.Create(user)
-	token, _ := users.GenerateToken(user.Username)
-
-	todo := todos.Todo{
-		Title:  "Test",
-		UserID: user.ID,
-	}
+	user, token := GetUserAndToken(usersRepo)
+	todo, _ := todos.NewTodo("Test", user.ID)
 	todo, _ = repo.Create(todo)
 
 	req, _ := http.NewRequest("GET", "/todos/"+todo.ID.String(), nil)
@@ -127,9 +112,7 @@ func TestHandleCreate(t *testing.T) {
 	usersRepo := users.NewMemoryUserRepository()
 	usersHandler := users.NewUsersHandler(usersRepo)
 
-	user := users.User{ID: uuid.New(), Username: "test", Password: "test"}
-	usersRepo.Create(user)
-	token, _ := users.GenerateToken(user.Username)
+	_, token := GetUserAndToken(usersRepo)
 
 	jsonData := `{"title":"Test"}`
 	req, _ := http.NewRequest("POST", "/todos", strings.NewReader(jsonData))
@@ -152,9 +135,7 @@ func TestHandleUpdateNotFound(t *testing.T) {
 	r.HandleFunc("/todos/{id}", usersHandler.AuthMiddleware(todoHandler.HandleItem)).Methods("PUT")
 
 	id := uuid.New().String()
-	user := users.User{ID: uuid.New(), Username: "test", Password: "test"}
-	usersRepo.Create(user)
-	token, _ := users.GenerateToken(user.Username)
+	_, token := GetUserAndToken(usersRepo)
 	jsonData := `{"title":"Test"}`
 
 	req, _ := http.NewRequest("PUT", "/todos/"+id, strings.NewReader(jsonData))
@@ -176,14 +157,8 @@ func TestHandleUpdateFound(t *testing.T) {
 
 	r.HandleFunc("/todos/{id}", usersHandler.AuthMiddleware(todoHandler.HandleItem)).Methods("PUT")
 
-	user := users.User{ID: uuid.New(), Username: "test", Password: "test"}
-	usersRepo.Create(user)
-	token, _ := users.GenerateToken(user.Username)
-
-	todo := todos.Todo{
-		Title:  "Test",
-		UserID: user.ID,
-	}
+	user, token := GetUserAndToken(usersRepo)
+	todo, _ := todos.NewTodo("Test", user.ID)
 	todo, _ = repo.Create(todo)
 	jsonData := `{"title":"Updated title"}`
 
@@ -211,9 +186,7 @@ func TestHandleDeleteNotFound(t *testing.T) {
 	r.HandleFunc("/todos/{id}", usersHandler.AuthMiddleware(todoHandler.HandleItem)).Methods("DELETE")
 
 	id := uuid.New().String()
-	user := users.User{ID: uuid.New(), Username: "test", Password: "test"}
-	usersRepo.Create(user)
-	token, _ := users.GenerateToken(user.Username)
+	_, token := GetUserAndToken(usersRepo)
 
 	req, _ := http.NewRequest("DELETE", "/todos/"+id, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -233,15 +206,8 @@ func TestHandleDeleteFound(t *testing.T) {
 
 	r.HandleFunc("/todos/{id}", usersHandler.AuthMiddleware(todoHandler.HandleItem)).Methods("DELETE")
 
-	user := users.User{ID: uuid.New(), Username: "test", Password: "test"}
-	usersRepo.Create(user)
-	token, _ := users.GenerateToken(user.Username)
-
-	todo := todos.Todo{
-		Title:  "Test",
-		UserID: user.ID,
-	}
-
+	user, token := GetUserAndToken(usersRepo)
+	todo, _ := todos.NewTodo("Test", user.ID)
 	todo, _ = repo.Create(todo)
 	req, _ := http.NewRequest("DELETE", "/todos/"+todo.ID.String(), nil)
 	req.Header.Set("Authorization", "Bearer "+token)
