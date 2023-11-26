@@ -14,8 +14,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM alpine:latest
 
-WORKDIR /
+WORKDIR /app
 
+COPY swagger-ui ./swagger-ui
 COPY --from=builder /main .
 
-CMD ["/main"]
+CMD ["/app/main"]

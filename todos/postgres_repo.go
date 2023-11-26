@@ -18,16 +18,32 @@ func NewPostgresTodoRepository(db *sql.DB) *PostgresTodoRepository {
 }
 
 func (p *PostgresTodoRepository) Query(query TodoQuery) ([]Todo, error) {
-	var todos []Todo
-	rows, err := p.db.Query("SELECT id, user_id, title, is_done FROM todos")
+	queryString := "SELECT id, user_id, title, is_done FROM todos WHERE"
+	filterValues := []interface{}{}
+	if query.UserID != uuid.Nil {
+		queryString += " user_id = $1 AND"
+		filterValues = append(filterValues, query.UserID)
+	}
+	if query.ID != uuid.Nil {
+		queryString += " id = $2 AND"
+		filterValues = append(filterValues, query.ID)
+	}
+	if len(filterValues) == 0 {
+		queryString += " 1 = 1"
+	} else {
+		queryString = queryString[:len(queryString)-4]
+	}
+
+	rows, err := p.db.Query(queryString, filterValues...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
+	todos := []Todo{}
 	for rows.Next() {
 		var todo Todo
-		err := rows.Scan(&todo.ID, &todo.UserID, &todo.Title, &todo.IsDone)
-		if err != nil {
+		if err := rows.Scan(&todo.ID, &todo.UserID, &todo.Title, &todo.IsDone); err != nil {
 			return nil, err
 		}
 		todos = append(todos, todo)

@@ -46,11 +46,8 @@ func (h *TodoHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	user := users.GetUserFromContext(r.Context())
 	todos, err := h.todoRepo.Query(TodoQuery{UserID: user.ID})
 	if err != nil {
-		api.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		api.RespondWithError(w, http.StatusInternalServerError, "Error getting all todos")
 		return
-	}
-	if todos == nil {
-		todos = []Todo{}
 	}
 	api.RespondWithJSON(w, http.StatusOK, todos)
 }
@@ -63,7 +60,7 @@ func (h *TodoHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		UserID: user.ID,
 	}
 	todo, err := h.todoRepo.Get(query)
-	if err != nil {
+	if err != nil || todo.ID == uuid.Nil {
 		api.RespondWithError(w, http.StatusNotFound, "Todo not found")
 		return
 	}
@@ -93,7 +90,7 @@ func (h *TodoHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	new_todo, err := h.todoRepo.Create(todo)
 	if err != nil {
-		api.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		api.RespondWithError(w, http.StatusInternalServerError, "Error creating todo on repository")
 		return
 	}
 	api.RespondWithJSON(w, http.StatusCreated, new_todo)
@@ -122,7 +119,7 @@ func (h *TodoHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	existing_todo, err := h.todoRepo.Get(query)
-	if err != nil {
+	if err != nil || existing_todo.ID == uuid.Nil {
 		api.RespondWithError(w, http.StatusNotFound, "Todo not found")
 		return
 	}
@@ -130,25 +127,25 @@ func (h *TodoHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	new_todo, err = h.todoRepo.Update(uuid.MustParse(id), new_todo)
 	if err != nil {
-		api.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		api.RespondWithError(w, http.StatusInternalServerError, "Error updating todo on repository")
 		return
 	}
 	api.RespondWithJSON(w, http.StatusOK, new_todo)
 }
 
 func (h *TodoHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
+	id := uuid.MustParse(mux.Vars(r)["id"])
 	user := users.GetUserFromContext(r.Context())
-	query := TodoQuery{ID: uuid.MustParse(id), UserID: user.ID}
-	_, err := h.todoRepo.Get(query)
-	if err != nil {
+	query := TodoQuery{ID: id, UserID: user.ID}
+	result, err := h.todoRepo.Get(query)
+	if err != nil || result.ID == uuid.Nil {
 		api.RespondWithError(w, http.StatusNotFound, "Todo not found")
 		return
 	}
 
-	err = h.todoRepo.Delete(uuid.MustParse(id))
+	err = h.todoRepo.Delete(id)
 	if err != nil {
-		api.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		api.RespondWithError(w, http.StatusInternalServerError, "Error deleting todo")
 		return
 	}
 	api.RespondWithJSON(w, http.StatusNoContent, nil)
