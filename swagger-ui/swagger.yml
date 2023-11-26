@@ -46,7 +46,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserRead'
+                $ref: '#/components/schemas/LoginResponse'
         '400':
           description: Invalid input, object invalid
         '401':
@@ -60,6 +60,8 @@ paths:
       operationId: getTodos
       tags:
         - todos
+      security:
+        - JWT: []
       responses:
         '200':
           description: Todos retrieved
@@ -76,6 +78,8 @@ paths:
       operationId: createTodo
       tags:
         - todos
+      security:
+        - JWT: []
       requestBody:
         content:
           application/json:
@@ -101,6 +105,8 @@ paths:
       operationId: getTodo
       tags:
         - todos
+      security:
+        - JWT: []
       parameters:
         - name: id
           in: path
@@ -123,6 +129,8 @@ paths:
       operationId: updateTodo
       tags:
         - todos
+      security:
+        - JWT: []
       parameters:
         - name: id
           in: path
@@ -152,6 +160,8 @@ paths:
       operationId: deleteTodo
       tags:
         - todos
+      security:
+        - JWT: []
       parameters:
         - name: id
           in: path
@@ -171,7 +181,19 @@ paths:
           description: Todo not found
 
 components:
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
+    LoginResponse:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
     User:
       type: object
       required:
