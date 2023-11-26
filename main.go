@@ -52,6 +52,17 @@ func main() {
 		server.Shutdown(context.Background())
 	}
 
+	swaggerUIDirectory := "swagger-ui"
+
+	swaggerFilePath := "swagger-ui/swagger.yml"
+
+	router.PathPrefix("/swagger-ui/").Handler(http.StripPrefix("/swagger-ui/", http.FileServer(http.Dir(swaggerUIDirectory))))
+
+	// Manejador para servir el archivo swagger.yml
+	router.HandleFunc("/swagger.yml", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, swaggerFilePath)
+	}).Methods("GET")
+
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		api.RespondWithJSON(w, http.StatusOK, map[string]string{"status": "OK"})
 	})
