@@ -21,6 +21,9 @@ func NewMemoryTodoRepository() *MemoryTodoRepository {
 func (m *MemoryTodoRepository) Query(query TodoQuery) ([]Todo, error) {
 	var todos []Todo
 	for _, todo := range m.todos {
+		if query.ID != uuid.Nil && todo.ID != query.ID {
+			continue
+		}
 		if query.UserID != uuid.Nil && todo.UserID != query.UserID {
 			continue
 		}

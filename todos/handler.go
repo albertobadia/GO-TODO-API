@@ -118,19 +118,18 @@ func (h *TodoHandler) Update(w http.ResponseWriter, r *http.Request) {
 	user := users.GetUserFromContext(r.Context())
 	query := TodoQuery{ID: uuid.MustParse(id), UserID: user.ID}
 
-	existing_todo, err := h.todoRepo.Get(query)
-	if err != nil {
-		api.RespondWithError(w, http.StatusNotFound, "Todo not found")
-		return
-	}
-
 	var update_data Todo
-	err = json.NewDecoder(r.Body).Decode(&update_data)
+	err := json.NewDecoder(r.Body).Decode(&update_data)
 	if err != nil {
 		api.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
+	existing_todo, err := h.todoRepo.Get(query)
+	if err != nil {
+		api.RespondWithError(w, http.StatusNotFound, "Todo not found")
+		return
+	}
 	new_todo := updateTodoData(&existing_todo, update_data)
 
 	err = h.todoRepo.Update(uuid.MustParse(id), new_todo)

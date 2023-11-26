@@ -61,6 +61,12 @@ func (h *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err = h.userRepo.GetByUsername(user.Username)
+	if err == nil {
+		api.RespondWithError(w, http.StatusBadRequest, "Username already exists")
+		return
+	}
+
 	user.ID = uuid.New()
 	user.Password, _ = HashPassword(user.Password)
 

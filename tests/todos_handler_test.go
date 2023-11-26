@@ -148,6 +148,53 @@ func TestHandleUpdateNotFound(t *testing.T) {
 	}
 }
 
+func TestHandleUpdateInvalidBody(t *testing.T) {
+	todoHandler := todos.NewTodoHandler(todos.NewMemoryTodoRepository())
+	usersRepo := users.NewMemoryUserRepository()
+	usersHandler := users.NewUsersHandler(usersRepo)
+
+	r := mux.NewRouter()
+	r.HandleFunc("/todos/{id}", usersHandler.AuthMiddleware(todoHandler.HandleItem)).Methods("PUT")
+
+	id := uuid.New().String()
+	_, token := GetUserAndToken(usersRepo)
+	jsonData := `{"title":}`
+
+	req, _ := http.NewRequest("PUT", "/todos/"+id, strings.NewReader(jsonData))
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+	}
+}
+
+func TestHandleUpdateNotOwned(t *testing.T) {
+	r := mux.NewRouter()
+	repo := todos.NewMemoryTodoRepository()
+	todoHandler := todos.NewTodoHandler(repo)
+	usersRepo := users.NewMemoryUserRepository()
+	usersHandler := users.NewUsersHandler(usersRepo)
+
+	r.HandleFunc("/todos/{id}", usersHandler.AuthMiddleware(todoHandler.HandleItem)).Methods("PUT")
+
+	user, _ := GetUserAndToken(usersRepo)
+	todo, _ := todos.NewTodo("Test", user.ID)
+	todo, _ = repo.Create(todo)
+
+	_, otherToken := GetUserAndToken(usersRepo)
+	jsonData := `{"title":"Updated title"}`
+	req, _ := http.NewRequest("PUT", "/todos/"+todo.ID.String(), strings.NewReader(jsonData))
+	req.Header.Set("Authorization", "Bearer "+otherToken)
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+	if status := rr.Code; status != http.StatusNotFound {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
+	}
+}
+
 func TestHandleUpdateFound(t *testing.T) {
 	r := mux.NewRouter()
 	repo := todos.NewMemoryTodoRepository()
@@ -190,6 +237,29 @@ func TestHandleDeleteNotFound(t *testing.T) {
 
 	req, _ := http.NewRequest("DELETE", "/todos/"+id, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+	if status := rr.Code; status != http.StatusNotFound {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
+	}
+}
+
+func TestHandleDeleteNotOwned(t *testing.T) {
+	r := mux.NewRouter()
+	repo := todos.NewMemoryTodoRepository()
+	todoHandler := todos.NewTodoHandler(repo)
+	usersRepo := users.NewMemoryUserRepository()
+	usersHandler := users.NewUsersHandler(usersRepo)
+
+	r.HandleFunc("/todos/{id}", usersHandler.AuthMiddleware(todoHandler.HandleItem)).Methods("DELETE")
+
+	user, _ := GetUserAndToken(usersRepo)
+	todo, _ := todos.NewTodo("Test", user.ID)
+	todo, _ = repo.Create(todo)
+
+	_, otherToken := GetUserAndToken(usersRepo)
+	req, _ := http.NewRequest("DELETE", "/todos/"+todo.ID.String(), nil)
+	req.Header.Set("Authorization", "Bearer "+otherToken)
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 	if status := rr.Code; status != http.StatusNotFound {
