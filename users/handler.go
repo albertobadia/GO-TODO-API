@@ -27,7 +27,7 @@ func GenerateToken(username string) (string, error) {
 		Subject: username,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte("secret"))
+	return token.SignedString([]byte(api.SECRET_KEY))
 }
 
 func HashPassword(password string) (string, error) {
@@ -116,7 +116,7 @@ func (h *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *UsersHandler) GetUserFromToken(token string) (User, error) {
 	claims := jwt.StandardClaims{}
 	_, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secret"), nil
+		return []byte(api.SECRET_KEY), nil
 	})
 	if err != nil {
 		return User{}, err

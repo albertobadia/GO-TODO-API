@@ -10,6 +10,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func logHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.Method, r.URL)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	memoryUserRepo := users.NewMemoryUserRepository()
 	memoryTodoRepo := todos.NewMemoryTodoRepository()
@@ -18,6 +25,7 @@ func main() {
 	todosHandler := todos.NewTodoHandler(memoryTodoRepo)
 
 	router := mux.NewRouter()
+	router.Use(logHandler)
 
 	router.HandleFunc("/register", usersHandler.Register).Methods(http.MethodPost)
 	router.HandleFunc("/login", usersHandler.Login).Methods(http.MethodPost)
