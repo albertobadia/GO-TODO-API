@@ -64,16 +64,22 @@ go test ./tests -v
 
 The API documentation is available at <http://localhost:8080/swagger-ui/>
 
+## Postman collection
+
+The Postman collection is available at <b>/tests/integration/</b>
+
 ## Endpoints
 
 ### Register
 
 ```
 POST /register HTTP/1.1 Host: localhost:8080 Content-Type: application/json
+{"username": "test", "password": "test"}
 
+Response:
 {
-    "username": "test",
-    "password": "test"
+    "id": 3f1b1c1a-1b1c-4f1b-1c1a-1b1c1f1b1c1a,
+    "username": "test"
 }
 ```
 
@@ -81,11 +87,10 @@ POST /register HTTP/1.1 Host: localhost:8080 Content-Type: application/json
 
 ```
 POST /login HTTP/1.1 Host: localhost:8080 Content-Type: application/json
+{"username": "test", "password": "test"}
 
-{
-    "username": "test",
-    "password": "test"
-}
+Response:
+{"token": {TOKEN}}
 ```
 
 ### Create a TODO
