@@ -68,6 +68,12 @@ The API documentation is available at <http://localhost:8080/swagger-ui/>
 
 The Postman collection is available at <b>/tests/integration/</b>
 
+## Usefull notes
+
+- The database is created automatically when the container is started.
+- Every user has its own TODO list, and only can see its own TODOs.
+- There are memory and database implementations of the repository, the memory implementation is used for testing purposes. If you want to user the memory implementation, set the environment variable IS_TESTING to true, otherwise the database implementation will be used.
+
 ## Endpoints
 
 ### Register
